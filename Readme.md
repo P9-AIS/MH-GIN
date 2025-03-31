@@ -1,4 +1,4 @@
-# MTS-HGNN
+# MH-GIN: Multi-scale Heterogeneous Graph-based Imputation Network for AIS Data
 This is the official implementation of the paper "MH-GIN: Multi-scale Heterogeneous Graph-based Imputation Network for AIS Data".
 
 ## Abstract

@@ -1,0 +1,50 @@
+################## Seed ###########################################################
+seed: 42
+
+################## Dataset params ###########################################################
+data_download: True
+data_load_cache: True
+datascalability: 1
+datasets:  ['aisdk-2024-03-01@31', 'aisdk-2024-04-01@30', 'aisdk-2024-05-01@31',
+           'aisdk-2024-06-01@30', 'aisdk-2024-07-01@31', 'aisdk-2024-08-01@31',
+            'aisdk-2024-09-01@30', 'aisdk-2024-10-01@31', 'aisdk-2024-11-01@30', 'aisdk-2024-12-01@31']
+min_time_interval: 80
+max_time_interval: 1e9
+min_traj_len: 200
+max_traj_len: 600
+
+#############################################################################
+################## Data Preprocessing params#################################
+
+max_len: 600
+mask_rate: 0.3
+workers: 16
+batch_size: 64
+batch_test: 16
+dataset_name: denmark_ais
+
+################## Model params #############################################################
+model_name: MTS-HGNN
+d_data_model: 32
+d_mining_model: 32
+output_size: 32
+graph_mask_values: [4, 8]
+
+################## Training params ##########################################################
+device: 'cuda:0'
+epochs: 30 
+lr: 0.001
+weight_decay: 1e-9
+use_lr_schedule: True
+
+valid_epoch_interval: 1
+patience: 3
+
+################## Reservoir params #########################################################
+reservoir_size: 32
+reservoir_layers: 5 #
+spectral_radius: 0.9
+leaking_rate: 0.3  #
+density: 0.7
+alpha_decay: False
+bidirectional: True

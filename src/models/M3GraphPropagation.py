@@ -20,6 +20,9 @@ class CrossScaleDependencyMining(nn.Module):
        
         self.linear = nn.Linear(3 * feature_dim, feature_dim, bias=False)
 
+        # Learnable function for stage 1 dynamic edge weights
+        self.f_edge = nn.Linear(2 * feature_dim, 1, bias=False)
+
         self._init_adj_matrices()
 
     def _create_fixed_adjacency_stage1(self, device, graph_mask_values):
@@ -240,12 +243,44 @@ class CrossScaleDependencyMining(nn.Module):
                 f"Sum of output_sizes ({ptr}) does not match the second dimension of input tensor ({h_final_out.size(1)}).")
         return outputs
 
-    def _scale_graph_propagate(self, hk):
-        # Compute normalized adjacency
-        degree_inv_sqrt = self.degree_inv_sqrt_k.to(hk.device)
-        norm_ak = degree_inv_sqrt * (self.ak_l * self.ak_l_p.to(hk.device)) * degree_inv_sqrt.t()
+    # def _scale_graph_propagate(self, hk):
+    #     # Compute normalized adjacency
+    #     degree_inv_sqrt = self.degree_inv_sqrt_k.to(hk.device)
+    #     norm_ak = degree_inv_sqrt * (self.ak_l * self.ak_l_p.to(hk.device)) * degree_inv_sqrt.t()
 
-        return torch.matmul(norm_ak, hk)
+    #     return torch.matmul(norm_ak, hk)
+
+    def _compute_dynamic_adjacency(self, hk_curr, hk_next):
+        """Compute dynamic adjacency matrix based on current and higher-scale contextual features"""
+        batch_size, n_nodes, feat_dim = hk_curr.shape
+        
+        hk_i = hk_curr.unsqueeze(2).expand(-1, -1, n_nodes, -1)  # [b*s, 43, 43, f]
+        hk_j = hk_curr.unsqueeze(1).expand(-1, n_nodes, -1, -1)  # [b*s, 43, 43, f]
+        
+        edge_features = torch.cat([hk_i, hk_j], dim=-1)  # [b*s, 43, 43, 2*f]
+        
+        edge_weights = self.f_edge(edge_features).squeeze(-1)  # [b*s, 43, 43]
+        
+        edge_weights = torch.sigmoid(edge_weights)
+        
+        return edge_weights
+
+    def _scale_graph_propagate(self, hk, hk_next=None):
+        """Stage 1: Intra-scale Temporal Alignment with dynamic adjacency"""
+        if hk_next is not None:
+            dynamic_weights = self._compute_dynamic_adjacency(hk, hk_next)
+        else:
+            dynamic_weights = self._compute_dynamic_adjacency(hk, hk)
+        
+        ak_l_p_device = self.ak_l_p.to(hk.device)
+        ak_l_device = self.ak_l.to(hk.device)
+        
+        A_k = dynamic_weights * ak_l_p_device + ak_l_device * ak_l_p_device
+        
+        degree_inv_sqrt = self.degree_inv_sqrt_k.to(hk.device) 
+        norm_A_k = degree_inv_sqrt * A_k * degree_inv_sqrt.t()
+        
+        return torch.matmul(norm_A_k, hk)
 
     def _attribute_graph_propagate(self, hx):
         # Compute normalized adjacency

@@ -395,8 +395,8 @@ class MtsHGnn(nn.Module):
             }
 
             results = {}
-            lon_metrics = compute_metrics(torch.deg2rad(labels[..., -2:-1]), torch.deg2rad(lon.unsqueeze(-1)), ~missing_mask)
-            lat_metrics = compute_metrics(torch.deg2rad(labels[..., -3:-2]), torch.deg2rad(lat.unsqueeze(-1)), ~missing_mask)
+            lon_metrics = compute_metrics(torch.deg2rad(labels[..., -2:-1]), lon.unsqueeze(-1), ~missing_mask)
+            lat_metrics = compute_metrics(torch.deg2rad(labels[..., -3:-2]), lat.unsqueeze(-1), ~missing_mask)
             results['coord_mae'] = (lon_metrics['mae'] + lat_metrics['mae']) / 2.0
             results['coord_smape'] = (lon_metrics['smape'] + lat_metrics['smape']) / 2.0
 

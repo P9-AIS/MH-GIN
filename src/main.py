@@ -18,7 +18,7 @@ parent_current_path = os.path.dirname(current_path)
 root_path = parent_current_path
 sys.path.append(root_path)
 from src.models.MTSHGNN import MtsHGnn
-from src.data.denmark_data_process_module import process_ais_multi_csv_dataset, \
+from src.data.danish_data_process_module import process_ais_multi_csv_dataset, \
     hyperparameter_DataProcess
 from src.pipeline.experiment import Experiment
 import src
@@ -64,9 +64,6 @@ def configure_parser():
     base_group = parser.add_argument_group('Base Configuration')
     base_group.add_argument('--seed', type=int, default=-1,
                           help='Random seed for reproducibility')
-    base_group.add_argument("--config", type=str,
-                        default=f'{root_path}/config/config.yaml',
-                        help='Path to configuration file')
 
     # Dataset parameters
     data_group = parser.add_argument_group('Dataset Configuration')
@@ -77,7 +74,7 @@ def configure_parser():
     data_group.add_argument('--workers', type=int, default=0)
     data_group.add_argument('--batch-size', type=int, default=32)
     data_group.add_argument('--batch-test', type=int, default=16)
-    data_group.add_argument('--dataset_name', type=str, default='denmark_ais')
+    data_group.add_argument('--dataset_name', type=str, default='danish_ais')
 
     # Model architecture parameters
     model_group = parser.add_argument_group('Model Configuration')

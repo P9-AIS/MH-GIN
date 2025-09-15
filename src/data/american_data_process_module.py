@@ -263,6 +263,9 @@ def process_ais_multi_csv_dataset(args):
 
 
 def hyperparameter_DataProcess(parser):
+    parser.add_argument("--config", type=str,
+                            default=f'{project_root}/config/config-US.yaml',
+                            help='Path to configuration file')
     # Dataset Process
     # AIS_2023_12_11@31 
     # default=['AIS_2024_03_01@31', 'AIS_2024_04_01@30', 'AIS_2024_05_01@31']

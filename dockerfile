@@ -12,3 +12,5 @@ RUN pip3 install --no-cache-dir -r /app/src/requirements.txt
 
 # Copy the rest of the code
 COPY . /app
+
+CMD ["tail", "-f", "/dev/null"]

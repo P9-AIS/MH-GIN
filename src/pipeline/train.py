@@ -20,7 +20,10 @@ def train(model, args, logger, train_loader, valid_loader=None, folder_name="",)
     patience = args.patience  # Maximum number of epochs without improvement
     start_epoch = 0
 
-    if args.resume and os.path.exists(args.resume):
+    if args.resume:
+        if not os.path.exists(args.resume):
+            logger.warning(f"Checkpoint file {args.resume} not found.")
+            exit()  # Stop training if resume file is not found
         checkpoint = torch.load(args.resume, map_location=args.device)
         model.load_state_dict(checkpoint["model_state_dict"])
         optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
@@ -90,6 +93,7 @@ def train(model, args, logger, train_loader, valid_loader=None, folder_name="",)
                         "no_improvement_count": no_improvement_count,
                     }
 
+                    os.makedirs(folder_name, exist_ok=True)
                     torch.save(checkpoint, output_path)
 
             if is_lr_decay:
@@ -144,6 +148,7 @@ def train(model, args, logger, train_loader, valid_loader=None, folder_name="",)
                             "no_improvement_count": no_improvement_count,
                         }
 
+                        os.makedirs(folder_name, exist_ok=True)
                         torch.save(checkpoint, folder_name + "/tmp_model" + str(epoch_no) + ".pth")
                     log_metrics(logger, eval_metrics, coordinate_is_mae_smape=False)
                 else:

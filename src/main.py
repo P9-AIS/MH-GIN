@@ -202,7 +202,6 @@ def run_experiment(args):
                                args.dataset_name,
                                args.model_name,
                                exp_name)
-        pathlib.Path(result_path).mkdir(parents=True)
         train(model, args, logger, train_loader, test_loader, folder_name=result_path)
     else:
         # Inference phase

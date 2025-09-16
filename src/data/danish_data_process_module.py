@@ -186,7 +186,7 @@ def process_ais_multi_csv_dataset(args):
         for file_name in file_name_list:
             csv_file_list.append(os.path.join(process_data_path, file_name))
 
-    print("begin load aisdk_dataset")
+    print("begin load ais_dk_dataset")
     df_list = []
     data_size_mb = 0
     for csv_file in csv_file_list:
@@ -200,7 +200,7 @@ def process_ais_multi_csv_dataset(args):
         df_list.append(df)
         data_size_mb += os.path.getsize(csv_file) / (1024 * 1024)
     df = pd.concat(df_list, ignore_index=True)
-    print("end load aisdk_dataset")
+    print("end load ais_dk_dataset")
 
     # Calculate Data Size (Mb)
     datascalability = args.datascalability

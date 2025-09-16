@@ -18,7 +18,9 @@ parent_current_path = os.path.dirname(current_path)
 root_path = parent_current_path
 sys.path.append(root_path)
 from src.models.MTSHGNN import MtsHGnn
-from src.data.danish_data_process_module import process_ais_multi_csv_dataset, \
+# from src.data.danish_data_process_module import process_ais_multi_csv_dataset, \
+#     hyperparameter_DataProcess
+from src.data.american_data_process_module import process_ais_multi_csv_dataset, \
     hyperparameter_DataProcess
 from src.pipeline.experiment import Experiment
 import src

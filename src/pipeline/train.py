@@ -1,3 +1,4 @@
+import os
 import torch
 from torch.optim import Adam
 from tqdm import tqdm
@@ -17,11 +18,26 @@ def train(model, args, logger, train_loader, valid_loader=None, folder_name="",)
     best_train_loss = float('inf')  # Track the best training loss
     no_improvement_count = 0  # Counter for early stopping (patience mechanism)
     patience = args.patience  # Maximum number of epochs without improvement
+    start_epoch = 0
+
+    if args.resume and os.path.exists(args.resume):
+        checkpoint = torch.load(args.resume, map_location=args.device)
+        model.load_state_dict(checkpoint["model_state_dict"])
+        optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+        if is_lr_decay and checkpoint["scheduler_state_dict"] is not None:
+            lr_scheduler.load_state_dict(checkpoint["scheduler_state_dict"])
+        best_valid_loss = checkpoint.get("best_valid_loss", best_valid_loss)
+        best_train_loss = checkpoint.get("best_train_loss", best_train_loss)
+        no_improvement_count = checkpoint.get("no_improvement_count", 0)
+        start_epoch = checkpoint["epoch"] + 1
+        logger.info(f"Resumed training from {args.resume} at epoch {start_epoch}")
+    else:
+        logger.info("Starting training from scratch")
 
     if folder_name != "":
         output_path = folder_name + "/model.pth"
 
-    for epoch_no in range(args.epochs):
+    for epoch_no in range(start_epoch, args.epochs):
         avg_loss = 0
         model.train()
         with tqdm(train_loader, mininterval=5.0, maxinterval=50.0) as it:
@@ -64,7 +80,17 @@ def train(model, args, logger, train_loader, valid_loader=None, folder_name="",)
                 best_train_loss = avg_train_loss
                 logger.info(f"Epoch {epoch_no}: Best training loss updated to {best_train_loss:.4f} at epoch {epoch_no}")
                 if folder_name != "":
-                    torch.save(model.state_dict(), output_path)
+                    checkpoint = {
+                        "epoch": epoch_no,
+                        "model_state_dict": model.state_dict(),
+                        "optimizer_state_dict": optimizer.state_dict(),
+                        "scheduler_state_dict": lr_scheduler.state_dict() if is_lr_decay else None,
+                        "best_valid_loss": best_valid_loss,
+                        "best_train_loss": best_train_loss,
+                        "no_improvement_count": no_improvement_count,
+                    }
+
+                    torch.save(checkpoint, output_path)
 
             if is_lr_decay:
                 lr_scheduler.step()
@@ -108,7 +134,17 @@ def train(model, args, logger, train_loader, valid_loader=None, folder_name="",)
                     print(f"Epoch {epoch_no}: Best validation loss updated to {best_valid_loss:.4f} at epoch {epoch_no}")
                     logger.info(f"Epoch {epoch_no}: Best validation loss updated to {best_valid_loss:.4f} at epoch {epoch_no}")
                     if folder_name != "":
-                        torch.save(model.state_dict(), folder_name + "/tmp_model" + str(epoch_no) + ".pth")
+                        checkpoint = {
+                            "epoch": epoch_no,
+                            "model_state_dict": model.state_dict(),
+                            "optimizer_state_dict": optimizer.state_dict(),
+                            "scheduler_state_dict": lr_scheduler.state_dict() if is_lr_decay else None,
+                            "best_valid_loss": best_valid_loss,
+                            "best_train_loss": best_train_loss,
+                            "no_improvement_count": no_improvement_count,
+                        }
+
+                        torch.save(checkpoint, folder_name + "/tmp_model" + str(epoch_no) + ".pth")
                     log_metrics(logger, eval_metrics, coordinate_is_mae_smape=False)
                 else:
                     no_improvement_count += 1  # Increment patience counter

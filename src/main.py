@@ -89,6 +89,8 @@ def configure_parser():
 
     # Training parameters
     train_group = parser.add_argument_group('Training Configuration')
+    train_group.add_argument('--resume', type=str, default='',
+                        help='Path to checkpoint to resume training from')
     train_group.add_argument('--device', type=str, default='cuda:0',
                            help='Device for training (cpu/cuda)')
     train_group.add_argument('--epochs', type=int, default=100)

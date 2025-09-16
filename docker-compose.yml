@@ -1,0 +1,11 @@
+services:
+  mh-gin:
+    build:
+      context: .
+      dockerfile: dockerfile
+    container_name: mh-gin
+    volumes:
+      - ./Data:/app/Data
+      - ./Result:/app/Result
+      - ./log:/app/log
+    shm_size: '16g'

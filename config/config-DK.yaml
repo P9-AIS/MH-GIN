@@ -21,7 +21,7 @@ mask_rate: 0.3
 workers: 16
 batch_size: 64
 batch_test: 16
-dataset_name: denmark_ais
+dataset_name: danish_ais
 
 ################## Model params #############################################################
 model_name: MTS-HGNN

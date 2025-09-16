@@ -26,7 +26,7 @@ bash environment_install.sh
 ```
 
 ## Dataset Preparation
-The datasets can be automatically downloaded from http://web.ais.dk/aisdata/ 
+The datasets can be automatically downloaded from http://aisdata.ais.dk/2024/
 or https://coast.noaa.gov/htdata/CMSP/AISDataHandler/2023/index.html based on the dataset hyperparameter.
 The dataset parameter follows the format:
 
@@ -45,12 +45,11 @@ You should use the data processing tools we provided to obtain the MT-HGNN datas
 
 + Step 2: Run the data process script.
     ```python
-    cd ./src/data
-    python american_data_process_module.py --config ../../config/config-US.yaml
+    python src/data/american_data_process_module.py --config config-US.yaml
     ```
   
 ## Training
 we train MH-HGNN across different datasets and take US as an example:
   ```python
-   python src/main.py --config ./config/config-US.yaml
+   python src/main.py --config config-US.yaml
   ```

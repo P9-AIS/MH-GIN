@@ -5,7 +5,8 @@ seed: 42
 data_download: True
 data_load_cache: True
 datascalability: 1
-datasets:  ['AIS_2024_03_01@31'] 
+# datasets:  ['AIS_2024_03_01@31', 'AIS_2024_04_01@30', 'AIS_2024_05_01@31'] 
+datasets:  ['AIS_2024_03_01@3'] 
 min_time_interval: 300
 max_time_interval: 1e9
 min_traj_len: 200
@@ -28,8 +29,8 @@ output_size: 32
 graph_mask_values: [4, 8]
 
 ################## Training params ##########################################################
-device: 'cuda:1'
-epochs: 30 
+device: 'cpu'
+epochs: 1 
 lr: 0.001
 weight_decay: 1e-9
 use_lr_schedule: True

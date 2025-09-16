@@ -4,7 +4,7 @@ import sys, os, pandas as pd
 current_path = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(os.path.dirname(current_path)))
 print(sys.path)
-from src.data.data_filter import denmark_ais_data_filter
+from src.data.data_filter import danish_ais_data_filter
 from src.data.data_utils import download_ais_dataset, analyze_traj_data, encode_traj_data, split_trajectory2
 from src.pipeline.SaveLoadModule import save_processed_traj_data, load_processed_traj_data, save_dataset_statistics, \
     load_processed_traj_status, save_processed_traj_status
@@ -121,7 +121,7 @@ def load_ais_csv_dataset(args):
         print(f"Reading file: {csv_file}")
         df = pd.read_csv(csv_file)
         # data filter
-        df = denmark_ais_data_filter(df)
+        df = danish_ais_data_filter(df)
         df_list.append(df)
         data_size_mb += os.path.getsize(csv_file) / (1024 * 1024)
     df = pd.concat(df_list, ignore_index=True)
@@ -186,21 +186,21 @@ def process_ais_multi_csv_dataset(args):
         for file_name in file_name_list:
             csv_file_list.append(os.path.join(process_data_path, file_name))
 
-    print("begin load aisdk_dataset")
+    print("begin load ais_dk_dataset")
     df_list = []
     data_size_mb = 0
     for csv_file in csv_file_list:
         print(f"Reading file: {csv_file}")
         df = pd.read_csv(csv_file)
         # data filter
-        df = denmark_ais_data_filter(df)
+        df = danish_ais_data_filter(df)
         df = df[(df['Length'] > 0) & (df['Width'] > 0)]
         df = df[((df['COG'] >= 0) & (df['COG'] <= 360)) & ((df['Heading'] >= 0) & (df['Heading'] <= 360))]
         df = df[df["MMSI"] != 0]
         df_list.append(df)
         data_size_mb += os.path.getsize(csv_file) / (1024 * 1024)
     df = pd.concat(df_list, ignore_index=True)
-    print("end load aisdk_dataset")
+    print("end load ais_dk_dataset")
 
     # Calculate Data Size (Mb)
     datascalability = args.datascalability

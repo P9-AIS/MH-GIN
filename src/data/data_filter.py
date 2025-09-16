@@ -1,6 +1,6 @@
 import re
 
-def denmark_ais_data_filter(df):
+def danish_ais_data_filter(df):
     required_columns = [
         "# Timestamp", "Longitude", "Latitude", "Heading", "COG", "ROT", "SOG",
         "Navigational status", "Cargo type", "Destination", "Draught", "Length", "Width", "Ship type"

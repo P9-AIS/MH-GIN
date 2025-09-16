@@ -279,7 +279,7 @@ class MtsHGnn(nn.Module):
             (0, 0, 0),    # Vessel type
             (5, 2, 5),    # Cargo type
             (6, 3, 6),    # Navigation status
-            # (4, 1, 4)  # Uncomment for destination (denmark_ais)
+            # (4, 1, 4)  # Uncomment for destination (danish_ais)
         ]
         
         total_loss = 0

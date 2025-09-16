@@ -1,0 +1,7 @@
+.git
+.devcontainer
+.vscode
+.gitignore
+Data
+Result
+log

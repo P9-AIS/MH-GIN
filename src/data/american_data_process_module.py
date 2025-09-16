@@ -184,7 +184,7 @@ def process_ais_multi_csv_dataset(args):
         for file_name in file_name_list:
             csv_file_list.append(os.path.join(process_data_path, file_name))
 
-    print("begin load aisdk_dataset")
+    print("begin load ais_us_dataset")
     df_list = []
     data_size_mb = 0
     for csv_file in csv_file_list:
@@ -196,7 +196,7 @@ def process_ais_multi_csv_dataset(args):
         df_list.append(df)
         data_size_mb += os.path.getsize(csv_file) / (1024 * 1024)
     df = pd.concat(df_list, ignore_index=True)
-    print("end load aisdk_dataset")
+    print("end load ais_us_dataset")
 
     # Calculate Data Size (Mb)
     datascalability = args.datascalability
@@ -263,6 +263,9 @@ def process_ais_multi_csv_dataset(args):
 
 
 def hyperparameter_DataProcess(parser):
+    parser.add_argument("--config", type=str,
+                            default=f'{project_root}/config/config-US.yaml',
+                            help='Path to configuration file')
     # Dataset Process
     # AIS_2023_12_11@31 
     # default=['AIS_2024_03_01@31', 'AIS_2024_04_01@30', 'AIS_2024_05_01@31']

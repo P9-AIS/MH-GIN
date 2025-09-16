@@ -10,7 +10,7 @@ def download_ais_dataset(file_name_list, raw_data_path):
         # Step 1: Set base information about raw dataset
         global time_col_name, Lat_col_name, Lon_col_name, time_formulation
         if "aisdk" in file_name:
-            download_url = "http://web.ais.dk/aisdata/"
+            download_url = "http://aisdata.ais.dk/2024/"
             csv_file_name = f"{file_name}.csv"
             if ("2006" in file_name):
                 csv_file_name = file_name[:5] + "_" + file_name[5:].replace("-", "") + ".csv"

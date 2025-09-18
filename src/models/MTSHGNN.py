@@ -464,15 +464,24 @@ class MtsHGnn(nn.Module):
         total, acc = 0, 0
         results = {}
         for name, pred_idx, label_idx, mask_idx in accuracy_config:
-            if pred_idx >= len(discrete_list): continue
+            if pred_idx >= len(discrete_list): 
+                continue
             
-            pred = discrete_list[pred_idx]['y'].detach().cpu().numpy()
-            true = labels[..., label_idx:label_idx+1].long().detach().cpu().numpy()
-            mask = masks[..., mask_idx:mask_idx+1].detach().cpu().numpy()
+            pred = discrete_list[pred_idx]['y'].detach()
+            true = labels[..., label_idx:label_idx+1].long().detach()
+            mask = masks[..., mask_idx:mask_idx+1].detach()
             
-            current_acc = calculate_acc(pred, true, mask)
-            results[f'{name}_acc'] = current_acc
-            acc += current_acc
+            # keep everything in torch and run calculate_acc on tensors
+            current_acc = calculate_acc(
+                pred.cpu(), true.cpu(), mask.cpu()
+            )
+
+            # 🔑 Ensure result is tensor (not numpy)
+            if not isinstance(current_acc, torch.Tensor):
+                current_acc = torch.tensor(current_acc, dtype=torch.float32)
+
+            results[f'{name}_acc'] = current_acc.to(self.device)  # safe for DataParallel
+            acc += current_acc.item()
             total += 1
         
         return results

@@ -47,6 +47,13 @@ def train(model, args, logger, train_loader, valid_loader=None, folder_name="",)
             for batch_no, batch in enumerate(it, start=1):
                 optimizer.zero_grad()
                 (loss, loss_list), _ = model(batch, evaluate=True)
+
+                if isinstance(loss, list):
+                    loss = sum([l.mean() for l in loss])
+                elif loss.dim() > 0:
+                    loss = loss.mean()
+
+
                 loss.backward()
 
                 has_nan_grad = False

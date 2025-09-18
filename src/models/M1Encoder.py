@@ -51,8 +51,8 @@ class CoordinateEncoder(nn.Module):
         f4 = torch.sin(2 * lon_rad) * cos_lat  # sin(2λ)cos(φ)
         f5 = torch.cos(2 * lon_rad) * cos_lat  # cos(2λ)cos(φ)
 
-        # Combine into a single feature vector [b, s, 5]
-        features = torch.cat([sin_lon, cos_lon, sin_lat, cos_lat, f1, f2, f3, f4, f5], dim=-1)  # Shape [b, s, 5]
+        # Combine into a single feature vector [b, s, 9]
+        features = torch.cat([sin_lon, cos_lon, sin_lat, cos_lat, f1, f2, f3, f4, f5], dim=-1)  # Shape [b, s, 9]
 
         # Apply learnable affine transformations and activation for each dimension
         encoded_lon = self.activation(self.linear_lon(features)) # Shape [b, s, d_model]

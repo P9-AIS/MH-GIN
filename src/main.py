@@ -190,7 +190,13 @@ def run_experiment(args):
         horizon=args.horizon,
         num_layers=args.reservoir_layers,
         graph_mask_values=args.graph_mask_values
-    ).to(args.device)
+    )
+
+    if torch.cuda.device_count() > 1:
+        print("Using", torch.cuda.device_count(), "GPUs with DataParallel")
+        model = torch.nn.DataParallel(model)
+
+    model = model.to(args.device)
 
     # Execution flow control
     if args.pretrained_model == '':

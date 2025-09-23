@@ -8,7 +8,7 @@ def predict(model, test_loader, logger, coordinate_is_mae_smape=False, mean_test
         eval_metrics = {}
         with tqdm(test_loader, mininterval=5.0, maxinterval=50.0) as it:
             for batch_no, test_batch in enumerate(it, start=1):
-                (loss, loss_list), eval_dict = model(test_batch, evaluate=True)
+                (loss, loss_list), eval_dict = model(test_batch, True)
                 for key, value in eval_dict.items():
                     if key not in eval_metrics:
                         eval_metrics[key] = 0

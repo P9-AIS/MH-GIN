@@ -57,7 +57,7 @@ def train(model, args, logger, train_loader, valid_loader=None, folder_name=""):
         with tqdm(train_loader, mininterval=5.0, maxinterval=50.0) as it:
             for batch_no, batch in enumerate(it, start=1):
                 optimizer.zero_grad()
-                (loss, loss_list), _ = model(batch, evaluate=True)
+                (loss, loss_list), _ = model(batch, True)
 
                 # Reduce losses to scalars
                 loss = scalarize(loss)
@@ -135,7 +135,7 @@ def train(model, args, logger, train_loader, valid_loader=None, folder_name=""):
                     with tqdm(valid_loader, mininterval=5.0, maxinterval=50.0) as it:
                         for batch_no, valid_batch in enumerate(it, start=1):
                             (loss, loss_list), eval_dict = model(
-                                valid_batch, evaluate=True
+                                valid_batch, True
                             )
                             loss = scalarize(loss)
                             loss_list = [scalarize(l) for l in loss_list]

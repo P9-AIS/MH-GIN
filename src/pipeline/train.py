@@ -4,8 +4,10 @@ from torch.optim import Adam
 from tqdm import tqdm
 from src.utils.utils import log_metrics
 
+
 def train(model, args, logger, train_loader, valid_loader=None, folder_name="",):
-    optimizer = Adam(model.parameters(), lr=args.lr, weight_decay=float(args.weight_decay))
+    optimizer = Adam(model.parameters(), lr=args.lr,
+                     weight_decay=float(args.weight_decay))
     is_lr_decay = args.use_lr_schedule
     if is_lr_decay:
         p1 = int(0.75 * args.epochs)
@@ -33,7 +35,8 @@ def train(model, args, logger, train_loader, valid_loader=None, folder_name="",)
         best_train_loss = checkpoint.get("best_train_loss", best_train_loss)
         no_improvement_count = checkpoint.get("no_improvement_count", 0)
         start_epoch = checkpoint["epoch"] + 1
-        logger.info(f"Resumed training from {args.resume} at epoch {start_epoch}")
+        logger.info(
+            f"Resumed training from {args.resume} at epoch {start_epoch}")
     else:
         logger.info("Starting training from scratch")
 
@@ -47,13 +50,8 @@ def train(model, args, logger, train_loader, valid_loader=None, folder_name="",)
             for batch_no, batch in enumerate(it, start=1):
                 optimizer.zero_grad()
                 (loss, loss_list), _ = model(batch, evaluate=True)
-
-                if isinstance(loss, list):
-                    loss = sum([l.mean() for l in loss])
-                elif loss.dim() > 0:
-                    loss = loss.mean()
-
-
+                if torch.numel(loss) > 1:
+                    loss = loss.mean()  # make it a scalar
                 loss.backward()
 
                 has_nan_grad = False
@@ -61,15 +59,16 @@ def train(model, args, logger, train_loader, valid_loader=None, folder_name="",)
                     if param.grad is not None and (torch.isnan(param.grad).any() or torch.isinf(param.grad).any()):
                         has_nan_grad = True
                         logger.warning(f"NaN/Inf gradient detected in {name}")
-                        param.grad = torch.zeros_like(param.grad)  
-                
+                        param.grad = torch.zeros_like(param.grad)
+
                 if has_nan_grad:
-                    logger.warning(f"Skipping update due to NaN/Inf gradients at epoch {epoch_no}, batch {batch_no}")
+                    logger.warning(
+                        f"Skipping update due to NaN/Inf gradients at epoch {epoch_no}, batch {batch_no}")
                 else:
                     avg_loss += loss.item() if hasattr(loss, 'item') else loss
                     optimizer.step()
 
-                logger.info(f"Epoch {epoch_no}: train_loss:{loss.item() if hasattr(loss, 'item') else loss}, " 
+                logger.info(f"Epoch {epoch_no}: train_loss:{loss.item() if hasattr(loss, 'item') else loss}, "
                             f"spatial:{loss_list[0].item() if hasattr(loss_list[0], 'item') else loss_list[0]:.4f}, "
                             f"temporal:{loss_list[1].item() if hasattr(loss_list[1], 'item') else loss_list[1]:.4f}, "
                             f"angular:{loss_list[2].item() if hasattr(loss_list[2], 'item') else loss_list[2]:.4f}, "
@@ -84,11 +83,13 @@ def train(model, args, logger, train_loader, valid_loader=None, folder_name="",)
                 )
             # Log average training loss for the epoch
             avg_train_loss = avg_loss / len(train_loader)
-            logger.info(f"Epoch {epoch_no}: avg_train_loss = {avg_train_loss:.4f}")
+            logger.info(
+                f"Epoch {epoch_no}: avg_train_loss = {avg_train_loss:.4f}")
 
             if avg_train_loss < best_train_loss:
                 best_train_loss = avg_train_loss
-                logger.info(f"Epoch {epoch_no}: Best training loss updated to {best_train_loss:.4f} at epoch {epoch_no}")
+                logger.info(
+                    f"Epoch {epoch_no}: Best training loss updated to {best_train_loss:.4f} at epoch {epoch_no}")
                 if folder_name != "":
                     checkpoint = {
                         "epoch": epoch_no,
@@ -113,12 +114,18 @@ def train(model, args, logger, train_loader, valid_loader=None, folder_name="",)
                 with torch.no_grad():
                     with tqdm(valid_loader, mininterval=5.0, maxinterval=50.0) as it:
                         for batch_no, valid_batch in enumerate(it, start=1):
-                            (loss, loss_list), eval_dict = model(valid_batch, evaluate=True)
-                            avg_loss_valid_list[0] += loss_list[0].item() if hasattr(loss_list[0], 'item') else loss_list[0]
-                            avg_loss_valid_list[1] += loss_list[1].item() if hasattr(loss_list[1], 'item') else loss_list[1]
-                            avg_loss_valid_list[2] += loss_list[2].item() if hasattr(loss_list[2], 'item') else loss_list[2]
-                            avg_loss_valid_list[3] += loss_list[3].item() if hasattr(loss_list[3], 'item') else loss_list[3]
-                            avg_loss_valid_list[4] += loss_list[4].item() if hasattr(loss_list[4], 'item') else loss_list[4]
+                            (loss, loss_list), eval_dict = model(
+                                valid_batch, evaluate=True)
+                            avg_loss_valid_list[0] += loss_list[0].item() if hasattr(
+                                loss_list[0], 'item') else loss_list[0]
+                            avg_loss_valid_list[1] += loss_list[1].item() if hasattr(
+                                loss_list[1], 'item') else loss_list[1]
+                            avg_loss_valid_list[2] += loss_list[2].item() if hasattr(
+                                loss_list[2], 'item') else loss_list[2]
+                            avg_loss_valid_list[3] += loss_list[3].item() if hasattr(
+                                loss_list[3], 'item') else loss_list[3]
+                            avg_loss_valid_list[4] += loss_list[4].item() if hasattr(
+                                loss_list[4], 'item') else loss_list[4]
                             avg_loss_valid_list[5] += sum(loss_list)
 
                             for key, value in eval_dict.items():
@@ -133,17 +140,20 @@ def train(model, args, logger, train_loader, valid_loader=None, folder_name="",)
                                 },
                                 refresh=False,
                             )
-                        avg_valid_loss = avg_loss_valid_list[5] / len(valid_loader)
+                        avg_valid_loss = avg_loss_valid_list[5] / \
+                            len(valid_loader)
                         for key in eval_metrics:
                             eval_metrics[key] /= len(valid_loader)
                         log_message = f"Epoch {epoch_no}: avg_valid_loss = {avg_valid_loss:.4f}, Spatial: {avg_loss_valid_list[0] / len(valid_loader):.4f}, Temporal: {avg_loss_valid_list[1] / len(valid_loader):.4f}, Angular: {avg_loss_valid_list[2] / len(valid_loader):.4f}, Continuous: {avg_loss_valid_list[3] / len(valid_loader):.4f}, Discrete: {avg_loss_valid_list[4] / len(valid_loader):.4f}"
                         logger.info(log_message)
 
-                if  avg_valid_loss < best_valid_loss:
+                if avg_valid_loss < best_valid_loss:
                     best_valid_loss = avg_valid_loss
                     no_improvement_count = 0  # Reset patience counter
-                    print(f"Epoch {epoch_no}: Best validation loss updated to {best_valid_loss:.4f} at epoch {epoch_no}")
-                    logger.info(f"Epoch {epoch_no}: Best validation loss updated to {best_valid_loss:.4f} at epoch {epoch_no}")
+                    print(
+                        f"Epoch {epoch_no}: Best validation loss updated to {best_valid_loss:.4f} at epoch {epoch_no}")
+                    logger.info(
+                        f"Epoch {epoch_no}: Best validation loss updated to {best_valid_loss:.4f} at epoch {epoch_no}")
                     if folder_name != "":
                         checkpoint = {
                             "epoch": epoch_no,
@@ -156,8 +166,10 @@ def train(model, args, logger, train_loader, valid_loader=None, folder_name="",)
                         }
 
                         os.makedirs(folder_name, exist_ok=True)
-                        torch.save(checkpoint, folder_name + "/tmp_model" + str(epoch_no) + ".pth")
-                    log_metrics(logger, eval_metrics, coordinate_is_mae_smape=False)
+                        torch.save(checkpoint, folder_name +
+                                   "/tmp_model" + str(epoch_no) + ".pth")
+                    log_metrics(logger, eval_metrics,
+                                coordinate_is_mae_smape=False)
                 else:
                     no_improvement_count += 1  # Increment patience counter
 
@@ -165,5 +177,3 @@ def train(model, args, logger, train_loader, valid_loader=None, folder_name="",)
                     logger.info(
                         f"Early stopping triggered at epoch {epoch_no} after {patience} epochs without improvement.")
                     break
-
-

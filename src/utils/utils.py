@@ -298,7 +298,7 @@ def log_metrics(logger, final_metrics, coordinate_is_mae_smape=False, mean_test=
             for metric in metrics:
                 value = final_metrics[metric]
                 if isinstance(value, torch.Tensor):
-                    value = value.item()  # convert single-element tensor to float
+                    value = value.mean().item()  # combine across GPUs
                 logger.info(f"{metric}: {value:.8f}")
         logger.info("="*60)
 

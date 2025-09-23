@@ -296,7 +296,10 @@ def log_metrics(logger, final_metrics, coordinate_is_mae_smape=False, mean_test=
         for category, metrics in attributes_dict.items():
             logger.info(f"{'-'*15} {category} Metrics {'-'*15}")
             for metric in metrics:
-                logger.info(f"{metric}: {final_metrics[metric]:.8f}")
+                value = final_metrics[metric]
+                if isinstance(value, torch.Tensor):
+                    value = value.item()  # convert single-element tensor to float
+                logger.info(f"{metric}: {value:.8f}")
         logger.info("="*60)
 
 def log_loss_components(logger, *loss_components):

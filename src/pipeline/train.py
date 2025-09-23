@@ -28,7 +28,10 @@ def train(model, args, logger, train_loader, valid_loader=None, folder_name="",)
             for batch_no, batch in enumerate(it, start=1):
                 optimizer.zero_grad()
                 (loss, loss_list), _ = model(batch, evaluate=True)
+                if torch.numel(loss) > 1:
+                    loss = loss.mean()  # make it a scalar
                 loss.backward()
+
 
                 has_nan_grad = False
                 for name, param in model.named_parameters():

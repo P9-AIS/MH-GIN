@@ -53,3 +53,10 @@ we train MH-HGNN across different datasets and take US as an example:
   ```python
    python src/main.py --config config-US.yaml
   ```
+
+```bash
+timestamp=$(date +"%Y%m%d-%H%M%S") && \
+python3 -u src/data/danish_data_process_module.py --config config-DK-hengyu.yaml \
+  > >(tee "./runlogs/out-$timestamp.log") \
+  2> >(tee "./runlogs/err-$timestamp.log" >&2)
+```

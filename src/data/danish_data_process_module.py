@@ -11,6 +11,8 @@ from src.pipeline.SaveLoadModule import save_processed_traj_data, load_processed
 from src.utils.file_util import find_project_root
 import src
 from src.pipeline.experiment import Experiment
+from concurrent.futures import ProcessPoolExecutor, as_completed
+
 
 project_root = find_project_root(current_path)
 
@@ -89,6 +91,67 @@ def process_dataframe(df, chunk_size=2, draught_count_diffs=2000):
 
     return traj_data
 
+import os
+import pandas as pd
+from concurrent.futures import ProcessPoolExecutor, as_completed
+
+def load_and_filter_dk(csv_file):
+    """Worker: read + filter one DK AIS CSV file."""
+    print(f"[PID {os.getpid()}] Reading file: {csv_file}")
+    try:
+        df = pd.read_csv(csv_file)
+
+        # Apply filters
+        df = danish_ais_data_filter(df)
+        df = df[(df['Length'] > 0) & (df['Width'] > 0)]
+        df = df[
+            ((df['COG'] >= 0) & (df['COG'] <= 360)) &
+            ((df['Heading'] >= 0) & (df['Heading'] <= 360))
+        ]
+        df = df[df["MMSI"] != 0]
+
+        # Track file size
+        data_size_mb = os.path.getsize(csv_file) / (1024 * 1024)
+
+        # print(df.describe())
+        return df, data_size_mb
+
+    except Exception as e:
+        raise RuntimeError(f"Failed processing {csv_file}: {e}") from e
+
+def load_ais_dk_dataset(csv_file_list, max_workers=None):
+    """
+    Load and filter multiple large Danish AIS CSV files in parallel,
+    then concatenate them into one DataFrame.
+    """
+    print("begin load ais_dk_dataset")
+    df_list = []
+    total_size_mb = 0.0
+
+    # Run workers in parallel
+    with ProcessPoolExecutor(max_workers=max_workers) as executor:
+        futures = {executor.submit(load_and_filter_dk, f): f for f in csv_file_list}
+
+        for future in as_completed(futures):
+            csv_file = futures[future]
+            try:
+                df, size_mb = future.result()
+                df_list.append(df)
+                total_size_mb += size_mb
+                print(f"✅ Finished {csv_file} ({size_mb:.2f} MB)")
+            except Exception as e:
+                print(f"❌ Exception in {csv_file}: {e}")
+
+    # Combine all filtered DataFrames
+    if df_list:
+        df = pd.concat(df_list, ignore_index=True)
+    else:
+        df = pd.DataFrame()
+
+    print(f"Loaded {len(csv_file_list)} files totaling {total_size_mb:.2f} MB")
+    print("end load ais_dk_dataset")
+
+    return df, total_size_mb
 
 def load_ais_csv_dataset(args):
     #region Step 0: Check if processed data exists
@@ -113,19 +176,7 @@ def load_ais_csv_dataset(args):
     print(file_name_list)
 
     csv_file_list = download_ais_dataset(file_name_list, raw_data_path)
-    print("begin load aisdk_dataset")
-
-    df_list = []
-    data_size_mb = 0
-    for csv_file in csv_file_list:
-        print(f"Reading file: {csv_file}")
-        df = pd.read_csv(csv_file)
-        # data filter
-        df = danish_ais_data_filter(df)
-        df_list.append(df)
-        data_size_mb += os.path.getsize(csv_file) / (1024 * 1024)
-    df = pd.concat(df_list, ignore_index=True)
-    print("end load aisdk_dataset")
+    df = load_ais_dk_dataset(csv_file_list, args.workers)
     os.makedirs(process_data_path, exist_ok=True)
     df.to_csv(output_file, index=False)
 
@@ -186,22 +237,8 @@ def process_ais_multi_csv_dataset(args):
         for file_name in file_name_list:
             csv_file_list.append(os.path.join(process_data_path, file_name))
 
-    print("begin load ais_dk_dataset")
-    df_list = []
-    data_size_mb = 0
-    for csv_file in csv_file_list:
-        print(f"Reading file: {csv_file}")
-        df = pd.read_csv(csv_file)
-        # data filter
-        df = danish_ais_data_filter(df)
-        df = df[(df['Length'] > 0) & (df['Width'] > 0)]
-        df = df[((df['COG'] >= 0) & (df['COG'] <= 360)) & ((df['Heading'] >= 0) & (df['Heading'] <= 360))]
-        df = df[df["MMSI"] != 0]
-        df_list.append(df)
-        data_size_mb += os.path.getsize(csv_file) / (1024 * 1024)
-    df = pd.concat(df_list, ignore_index=True)
-    print("end load ais_dk_dataset")
-
+    df, data_size_mb = load_ais_dk_dataset(csv_file_list, args.workers)
+    
     # Calculate Data Size (Mb)
     datascalability = args.datascalability
     df = df.head(int(len(df) * datascalability))
